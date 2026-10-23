@@ -1,0 +1,36 @@
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
+public class ClientCalcul {
+    public static void main(String[] args) {
+        String adresseServeur = "localhost";
+        int port = 1234;
+
+        try {
+            System.out.println("Connexion au serveur " + adresseServeur + ":" + port + "...");
+            Socket socket = new Socket(adresseServeur, port);
+            System.out.println("Connecté avec succès !");
+
+            
+            Operation op = new Operation(15.5, 4.5)
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.writeObject(op);
+            oos.flush();
+            System.out.println("Opération envoyée au serveur : 15.5 + 4.5");
+
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            Operation opReponse = (Operation) ois.readObject();
+
+            
+            System.out.println("Résultat reçu du serveur : " + opReponse.getResultat());
+
+            
+            socket.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
