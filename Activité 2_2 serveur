@@ -1,0 +1,66 @@
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class ServeurCalcul {
+    public static void main(String[] args) {
+        int port = 1234;
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Le serveur est en attente de connexion sur le port " + port + "...");
+
+            
+            Socket socket = serverSocket.accept();
+            System.out.println("Client connecté : " + socket.getRemoteSocketAddress());
+
+            
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            Operation op = (Operation) ois.readObject();
+
+            System.out.println("Objet reçu : " + op.getNombre1() + " " + op.getOperateur() + " " + op.getNombre2());
+
+            
+            double res = 0;
+            boolean erreur = false;
+
+            switch (op.getOperateur()) {
+                case '+':
+                    res = op.getNombre1() + op.getNombre2();
+                    break;
+                case '-':
+                    res = op.getNombre1() - op.getNombre2();
+                    break;
+                case '*':
+                    res = op.getNombre1() * op.getNombre2();
+                    break;
+                case '/':
+                    if (op.getNombre2() != 0) {
+                        res = op.getNombre1() / op.getNombre2();
+                    } else {
+                        System.out.println("Erreur : Division par zéro !");
+                        erreur = true;
+                    }
+                    break;
+                default:
+                    System.out.println("Opérateur non reconnu !");
+                    erreur = true;
+            }
+
+            if (!erreur) {
+                op.setResultat(res);
+            }
+
+            
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.writeObject(op);
+            oos.flush();
+            System.out.println("Résultat envoyé au client : " + (erreur ? "Erreur" : res));
+
+            socket.close();
+            System.out.println("Connexion fermée.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
